@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <!-- Meta tags untuk responsivitas dan charset -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Mapping UNDIP - Peta Keramaian</title>
+    
+    <!-- Link ke Folium CSS (inline styles) -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .button-report {
+            display: inline-block;
+            font-size: 14px;
+            color: white;
+            background-color: rgba(255,255,255,0.16);
+            border: 1px solid rgba(255,255,255,0.24);
+            padding: 10px 16px;
+            border-radius: 999px;
+            text-decoration: none;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .button-report:hover {
+            background-color: rgba(255,255,255,0.28);
+            transform: translateY(-1px);
+        }
+        
+        .info-banner {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            margin: 0;
+            font-size: 13px;
+            color: #856404;
+        }
+        
+        .map-container {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            background-color: white;
+            min-height: 620px;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 12px 35px rgba(46,58,89,0.08);
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            min-height: 620px;
+        }
+
+        .dashboard-panel {
+            width: 320px;
+            padding: 24px;
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 12px 35px rgba(46,58,89,0.08);
+            margin-left: 20px;
+            min-width: 280px;
+        }
+
+        .stat-card {
+            background: #f8fbff;
+            border: 1px solid #d9e6ff;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 13px;
+            color: #6b7c99;
+            margin-bottom: 6px;
+        }
+
+        .footer {
+            background-color: #333;
+            color: white;
+            padding: 12px 15px;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .refresh-info {
+            text-align: center;
+            padding: 5px;
+            font-size: 11px;
+            background-color: #e8f4f8;
+            color: #555;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 992px) {
+            .content-wrapper {
+                display: block;
+                padding: 16px;
+            }
+
+            .map-container {
+                min-height: 520px;
+            }
+
+            #map {
+                min-height: 520px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .header p {
+                font-size: 12px;
+            }
+
+            .dashboard-panel {
+                padding: 18px;
+            }
+
+            .content-wrapper {
+                padding: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header aplikasi -->
+    <div class="header">
+        <div>
+            <h1>WEB GIS ACTIVITY MAPPING UNDIP</h1>
+            <p>Peta Keramaian Universitas Diponegoro Tembalang</p>
+        </div>
+        <div>
+            <a class="button-report" href="/laporkan">Laporkan Kondisi Area</a>
+        </div>
+    </div>
+    
+    <!-- Info banner -->
+    <div class="info-banner">
+        ℹ️ Data keramaian masih berupa simulasi. Nilai berubah saat halaman di-refresh.
+    </div>
+    
+    <!-- Container untuk peta dan statistik -->
+    <div class="content-wrapper">
+        <div class="map-container">
+            <div id="map" style="width: 100%; height: 100%;">
+                <!-- Peta Folium akan di-render di sini -->
+                {{ map_html | safe }}
+            </div>
+        </div>
+
+        <aside class="dashboard-panel">
+            <h2>Dashboard Statistik</h2>
+            <div class="stat-card">
+                <span class="stat-label">Jumlah Laporan Masuk</span>
+                <strong>{{ stats.total_reports }}</strong>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Lokasi Paling Ramai</span>
+                <strong>{{ stats.top_location }}</strong>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Aktivitas Paling Sering</span>
+                <strong>{{ stats.top_activity }}</strong>
+            </div>
+            <p class="dashboard-note">Laporan disimpan ke <strong>laporan.csv</strong> dan dibaca oleh Pandas untuk analisis.</p>
+        </aside>
+    </div>
+    
+    <!-- Info refresh -->
+    <div class="refresh-info">
+        💡 Refresh halaman untuk memperbarui data keramaian (F5 atau Ctrl+R)
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>
+            © 2026 Activity Mapping UNDIP | 
+            <strong>Teknik Geodesi UNDIP</strong> | 
+            <span id="timestamp"></span>
+        </p>
+    </div>
+    
+    <!-- Script untuk menampilkan timestamp -->
+    <script>
+        // Menampilkan waktu loading halaman
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('id-ID');
+        
+        // Info browser console untuk development
+        console.log('✅ Activity Mapping UNDIP loaded successfully');
+        console.log('📍 Buka API endpoint di: http://localhost:5000/api/locations');
+    </script>
+</body>
+</html>

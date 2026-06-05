@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporkan Kondisi Area - UNDIP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6fb;
+            color: #2e3a59;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 24px;
+            border-radius: 16px;
+            box-shadow: 0 16px 45px rgba(102,126,234,0.18);
+        }
+        .header h1 {
+            font-size: 22px;
+        }
+        .header a {
+            text-decoration: none;
+            color: white;
+            background: rgba(255,255,255,0.18);
+            padding: 10px 16px;
+            border-radius: 999px;
+            transition: background 0.2s ease;
+        }
+        .header a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .card {
+            background-color: white;
+            padding: 24px;
+            margin-top: 20px;
+            border-radius: 18px;
+            box-shadow: 0 8px 30px rgba(46,58,89,0.08);
+        }
+        .card h2 {
+            margin-bottom: 14px;
+            font-size: 20px;
+        }
+        .field {
+            margin-bottom: 18px;
+        }
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #42526e;
+        }
+        .field select,
+        .field input[type="text"],
+        .field input[type="file"] {
+            width: 100%;
+            border: 1px solid #d8e2f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 15px;
+            color: #1f2a44;
+            background: #f9fbff;
+        }
+        .field textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .button-submit {
+            background-color: #5b7fff;
+            color: white;
+            border: none;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+        .button-submit:hover {
+            transform: translateY(-1px);
+            background-color: #405ed7;
+        }
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid #e8ecf5;
+            font-size: 14px;
+            color: #3a4660;
+        }
+        th {
+            background: #f7f9ff;
+            color: #1f2a44;
+            font-weight: 700;
+        }
+        .thumbnail {
+            width: 100px;
+            height: auto;
+            border-radius: 12px;
+            object-fit: cover;
+            box-shadow: 0 8px 24px rgba(46,58,89,0.08);
+        }
+        .button-submit:hover {
+            transform: translateY(-1px);
+            background-color: #405ed7;
+        }
+        .message {
+            margin-bottom: 18px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+        .message.success {
+            background: #e6f8ed;
+            color: #1b6d3f;
+            border: 1px solid #a5d6a7;
+        }
+        .message.error {
+            background: #fff1f0;
+            color: #b42318;
+            border: 1px solid #f4b3b0;
+        }
+        .footer {
+            text-align: center;
+            color: #6b7c99;
+            font-size: 13px;
+            margin-top: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Lapor Diri dan Kondisi Area</h1>
+            <a href="/">Kembali ke Dashboard</a>
+        </div>
+
+        <div class="card">
+            <h2>Form Lapor Diri</h2>
+            {% if success %}
+                <div class="message success">Laporan berhasil dikirim. Data tersimpan di laporan.csv.</div>
+            {% elif error %}
+                <div class="message error">{{ error }}</div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                <div class="field">
+                    <label for="nama">Nama (opsional)</label>
+                    <input type="text" id="nama" name="nama" placeholder="Masukkan nama Anda">
+                </div>
+
+                <div class="field">
+                    <label for="lokasi">Lokasi Saat Ini</label>
+                    <select id="lokasi" name="lokasi" required>
+                        <option value="">Pilih lokasi</option>
+                        {% for lokasi in locations %}
+                            <option value="{{ lokasi }}">{{ lokasi }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="tingkat_keramaian">Tingkat Keramaian</label>
+                    <select id="tingkat_keramaian" name="tingkat_keramaian" required>
+                        <option value="">Pilih tingkat keramaian</option>
+                        <option value="Sepi">Sepi</option>
+                        <option value="Sedang">Sedang</option>
+                        <option value="Ramai">Ramai</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="foto">Upload Foto Area</label>
+                    <input type="file" id="foto" name="foto" accept="image/jpeg,image/jpg,image/png" required>
+                </div>
+
+                <button class="button-submit" type="submit">Kirim Laporan</button>
+            </form>
+        </div>
+
+        {% if reports %}
+        <div class="card">
+            <h2>Riwayat Laporan</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Waktu</th>
+                            <th>Nama</th>
+                            <th>Lokasi</th>
+                            <th>Tingkat Keramaian</th>
+                            <th>Foto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                            <tr>
+                                <td>{{ report.timestamp }}</td>
+                                <td>{{ report.nama or '-' }}</td>
+                                <td>{{ report.lokasi }}</td>
+                                <td>{{ report.tingkat_keramaian }}</td>
+                                <td>
+                                    {% if report.foto %}
+                                        <a href="/{{ report.foto }}" target="_blank">
+                                            <img class="thumbnail" src="/{{ report.foto }}" alt="Foto {{ report.lokasi }}">
+                                        </a>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            © 2026 Activity Mapping UNDIP | Laporan akan tersimpan ke laporan.csv
+        </div>
+    </div>
+</body>
+</html>
