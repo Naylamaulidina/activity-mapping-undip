@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Admin - WebGIS UNDIP</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6fb; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 30px rgba(46,58,89,0.08); width: 350px; text-align: center; }
+        input[type="password"] { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #d8e2f0; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; background: #667eea; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #5a6ed6; }
+        .error { color: #e74c3c; font-size: 13px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>🔒 Akses Admin</h2>
+        <p style="color: #666; font-size: 14px;">Khusus pengelola data pemetaan</p>
+        
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        <form method="post">
+            <input type="password" name="password" placeholder="Masukkan Password" required>
+            <button type="submit">Masuk Dashboard</button>
+        </form>
+        <br>
+        <a href="/" style="font-size: 13px; color: #667eea; text-decoration: none;">&larr; Kembali ke Peta</a>
+    </div>
+</body>
+</html>

@@ -3,19 +3,22 @@ Activity Mapping Universitas Diponegoro
 WEB GIS ACTIVITY MAPPING UNDIP
 Menggunakan Flask, Folium, Pandas, dan OpenStreetMap
 
-Fitur baru: crowdsourcing laporan keramaian pengguna.
+Fitur baru: crowdsourcing laporan keramaian pengguna, Time Decay, Haversine Distance, & Layer Filtering.
 """
 
-from flask import Flask, render_template, jsonify, request, redirect, url_for, send_from_directory
+from flask import Flask, render_template, jsonify, request, redirect, url_for, send_from_directory, session
 import folium
 from folium import plugins
 import pandas as pd
 import os
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
+import math
+import json
 
 # Inisialisasi aplikasi Flask
 app = Flask(__name__)
+app.secret_key = 'rahasia_webgis_undip_2026'
 
 # Path file laporan CSV dan upload foto
 CSV_PATH = os.path.join(os.path.dirname(__file__), 'laporan.csv')
@@ -23,8 +26,7 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
 CSV_COLUMNS = ['timestamp', 'nama', 'lokasi', 'tingkat_keramaian', 'foto']
 
 # ============================================
-# DATA LOKASI (daftar lengkap sesuai permintaan)
-# Format: 'Nama Lokasi': {'lat': ..., 'lon': ...}
+# DATA LOKASI
 # ============================================
 LOCATIONS = {
     "Perpustakaan Widya Puraya": {'lat': -7.0516, 'lon': 110.4381},
@@ -63,7 +65,6 @@ LOCATIONS = {
     "Bus Stop Campus": {'lat': -7.0497, 'lon': 110.4449},
 }
 
-
 # ============================================
 # UTILITIES
 # ============================================
@@ -72,20 +73,18 @@ def ensure_reports_file():
     if not os.path.exists(CSV_PATH):
         pd.DataFrame(columns=CSV_COLUMNS).to_csv(CSV_PATH, index=False)
 
-
 def ensure_upload_folder():
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'jpg', 'jpeg', 'png'}
 
-
 def load_reports():
+    """Memuat data laporan dari CSV dan mengembalikan DataFrame."""
     ensure_reports_file()
     try:
         df = pd.read_csv(CSV_PATH)
-    except Exception:
+    except FileNotFoundError:
         df = pd.DataFrame(columns=CSV_COLUMNS)
 
     for col in CSV_COLUMNS:
@@ -94,6 +93,18 @@ def load_reports():
 
     return df[CSV_COLUMNS]
 
+def get_active_reports(reports, hours=2):
+    """Menyaring laporan yang hanya dibuat dalam rentang X jam terakhir (Time Decay)"""
+    if reports.empty:
+        return reports
+    
+    df_filtered = reports.copy()    
+    df_filtered['timestamp_dt'] = pd.to_datetime(df_filtered['timestamp'], errors='coerce')
+    cutoff_time = datetime.now() - timedelta(hours=hours)
+    active_reports = df_filtered[df_filtered['timestamp_dt'] >= cutoff_time].copy()
+    active_reports = active_reports.drop(columns=['timestamp_dt'])
+    
+    return active_reports
 
 def save_report(report_data):
     ensure_upload_folder()
@@ -101,55 +112,36 @@ def save_report(report_data):
     df = pd.concat([df, pd.DataFrame([report_data])], ignore_index=True)
     df.to_csv(CSV_PATH, index=False)
 
-
-def compute_stats(reports):
-    if reports.empty:
-        return {'total_reports': 0, 'top_location': '-', 'top_activity': '-'}
-
-    if 'aktivitas' in reports.columns and not reports['aktivitas'].dropna().empty:
-        if not reports[reports['tingkat_keramaian'] == 'Ramai'].empty:
-            top_location = reports[reports['tingkat_keramaian'] == 'Ramai']['lokasi'].mode().iloc[0]
-        else:
-            top_location = reports['lokasi'].mode().iloc[0]
-
-        top_activity = reports['aktivitas'].mode().iloc[0] if not reports['aktivitas'].mode().empty else '-'
-    else:
-        top_location = reports['lokasi'].mode().iloc[0] if not reports['lokasi'].mode().empty else '-'
-        top_activity = '-'
-
-    return {
-        'total_reports': len(reports),
-        'top_location': top_location,
-        'top_activity': top_activity,
+def compute_stats(reports, active_reports):
+    stats = {
+        'total_historis': len(reports),
+        'total_aktif': len(active_reports),
+        'top_location': '-',
+        'top_activity': '-'
     }
+    
     if reports.empty:
-        return {'total_reports': 0, 'top_location': '-', 'top_activity': '-'}
+        return stats
 
-    if not reports[reports['tingkat_keramaian'] == 'Ramai'].empty:
-        top_location = reports[reports['tingkat_keramaian'] == 'Ramai']['lokasi'].mode().iloc[0]
+    target_df = active_reports if not active_reports.empty else reports
+    
+    if not target_df[target_df['tingkat_keramaian'] == 'Ramai'].empty:
+        stats['top_location'] = target_df[target_df['tingkat_keramaian'] == 'Ramai']['lokasi'].mode().iloc[0]
     else:
-        top_location = reports['lokasi'].mode().iloc[0]
-
-    top_activity = reports['aktivitas'].mode().iloc[0] if not reports['aktivitas'].mode().empty else '-'
-
-    return {
-        'total_reports': len(reports),
-        'top_location': top_location,
-        'top_activity': top_activity,
-    }
-
+        stats['top_location'] = target_df['lokasi'].mode().iloc[0]
+        
+    if active_reports.empty and not reports.empty:
+        stats['top_location'] += " (Tren Historis)"
+        
+    return stats
 
 def get_report_intensity(level):
     return {'Sepi': 0.2, 'Sedang': 0.55, 'Ramai': 1.0}.get(level, 0.4)
 
-
 def get_crowd_level():
-    """Generate nilai keramaian simulasi (0-20)."""
     return random.randint(0, 20)
 
-
 def get_crowd_status(crowd_value):
-    """Tentukan status dan warna berdasarkan crowd_value."""
     if crowd_value <= 5:
         return {'status': 'Sepi', 'color': 'green'}
     elif 6 <= crowd_value <= 15:
@@ -157,18 +149,21 @@ def get_crowd_status(crowd_value):
     else:
         return {'status': 'Ramai', 'color': 'red'}
 
-
 def get_color_code(color_name):
-    """Mapping nama warna ke hex code."""
     color_map = {'green': '#2ecc71', 'orange': '#e67e22', 'red': '#e74c3c'}
     return color_map.get(color_name, '#95a5a6')
 
-
 def create_map(reports=None):
-    """Buat peta Folium dengan marker dan heatmap berdasarkan data laporan."""
+    """Buat peta Folium dengan marker, heatmap, dan fitur Filter Status (LayerControl)."""
     center_lat, center_lon = -7.0515, 110.4390
     m = folium.Map(location=[center_lat, center_lon], zoom_start=16, tiles='OpenStreetMap')
-    heatmap_points = []
+    
+    # 1. Buat Layer Groups (Grup Filter untuk UI)
+    fg_sepi = folium.FeatureGroup(name='🟢 Filter Tempat Sepi', show=True)
+    fg_sedang = folium.FeatureGroup(name='🟠 Filter Tempat Sedang', show=True)
+    fg_ramai = folium.FeatureGroup(name='🔴 Filter Tempat Ramai', show=True)
+
+    heat_sepi, heat_sedang, heat_ramai = [], [], []
 
     if reports is not None and not reports.empty:
         for _, row in reports.iterrows():
@@ -179,23 +174,39 @@ def create_map(reports=None):
                 continue
 
             intensity = get_report_intensity(level)
+            color_map_hex = {'Sepi': '#2ecc71', 'Sedang': '#e67e22', 'Ramai': '#e74c3c'}
+            c_hex = color_map_hex.get(level, '#95a5a6')
+
+            popup_html = f"<div style='font-family: Arial; width: 180px;'><h4 style='margin:0 0 4px 0'>{lokasi}</h4><p style='margin:0;font-size:13px;'>Status Laporan: <b>{level}</b></p></div>"
+            
+            # Buat Marker
+            marker = folium.CircleMarker(
+                location=[lokasi_coords['lat'], lokasi_coords['lon']],
+                radius=7, color=c_hex, fill=True, fillColor=c_hex, fillOpacity=0.9,
+                popup=folium.Popup(popup_html, max_width=250), tooltip=lokasi
+            )
+
+            # Pisahkan Marker ke dalam grup yang sesuai dengan statusnya
+            if level == 'Sepi':
+                marker.add_to(fg_sepi)
+            elif level == 'Sedang':
+                marker.add_to(fg_sedang)
+            else:
+                marker.add_to(fg_ramai)
+
+            # Buat titik untuk Heatmap
             for _ in range(4):
                 lat_j = lokasi_coords['lat'] + random.uniform(-0.00025, 0.00025)
                 lon_j = lokasi_coords['lon'] + random.uniform(-0.00025, 0.00025)
-                heatmap_points.append([lat_j, lon_j, intensity])
-
-        if heatmap_points:
-            plugins.HeatMap(
-                heatmap_points,
-                name='Heatmap Laporan Pengguna',
-                min_opacity=0.35,
-                radius=28,
-                blur=18,
-                max_zoom=18,
-                gradient={0.2: 'green', 0.5: 'orange', 1.0: 'red'}
-            ).add_to(m)
+                if level == 'Sepi':
+                    heat_sepi.append([lat_j, lon_j, intensity])
+                elif level == 'Sedang':
+                    heat_sedang.append([lat_j, lon_j, intensity])
+                else:
+                    heat_ramai.append([lat_j, lon_j, intensity])
 
     else:
+        # Data Simulasi (Jika belum ada laporan asli)
         for name, c in LOCATIONS.items():
             lat, lon = c['lat'], c['lon']
             crowd = get_crowd_level()
@@ -212,37 +223,46 @@ def create_map(reports=None):
             </div>
             """
 
-            folium.CircleMarker(
-                location=[lat, lon],
-                radius=7,
-                color=color_hex,
-                fill=True,
-                fillColor=color_hex,
-                fillOpacity=0.9,
-                weight=1,
-                popup=folium.Popup(popup_html, max_width=260),
-                tooltip=name
-            ).add_to(m)
+            marker = folium.CircleMarker(
+                location=[lat, lon], radius=7, color=color_hex, fill=True, fillColor=color_hex, fillOpacity=0.9,
+                weight=1, popup=folium.Popup(popup_html, max_width=260), tooltip=name
+            )
 
-            num_points = 4 + (crowd // 4)
             intensity = max(0.05, crowd / 20.0)
+            num_points = 4 + (crowd // 4)
+            points = []
             for _ in range(num_points):
                 lat_j = lat + random.uniform(-0.00035, 0.00035)
                 lon_j = lon + random.uniform(-0.00035, 0.00035)
-                heatmap_points.append([lat_j, lon_j, intensity])
+                points.append([lat_j, lon_j, intensity])
 
-        if heatmap_points:
-            plugins.HeatMap(
-                heatmap_points,
-                name='Heatmap Keramaian',
-                min_opacity=0.3,
-                radius=30,
-                blur=20,
-                max_zoom=18,
-                gradient={0.2: 'green', 0.5: 'orange', 1.0: 'red'}
-            ).add_to(m)
+            if status_text == 'Sepi':
+                marker.add_to(fg_sepi)
+                heat_sepi.extend(points)
+            elif status_text == 'Sedang':
+                marker.add_to(fg_sedang)
+                heat_sedang.extend(points)
+            else:
+                marker.add_to(fg_ramai)
+                heat_ramai.extend(points)
 
-    legend_text = 'Heatmap menggunakan laporan pengguna' if reports is not None and not reports.empty else 'Data keramaian masih berupa simulasi'
+    # 2. Tambahkan algoritma Heatmap terpisah ke dalam grup masing-masing
+    if heat_sepi:
+        plugins.HeatMap(heat_sepi, min_opacity=0.4, radius=30, blur=20, max_zoom=18, gradient={0.0: '#2ecc71', 1.0: '#27ae60'}).add_to(fg_sepi)
+    if heat_sedang:
+        plugins.HeatMap(heat_sedang, min_opacity=0.4, radius=30, blur=20, max_zoom=18, gradient={0.0: '#f1c40f', 1.0: '#e67e22'}).add_to(fg_sedang)
+    if heat_ramai:
+        plugins.HeatMap(heat_ramai, min_opacity=0.4, radius=30, blur=20, max_zoom=18, gradient={0.0: '#e74c3c', 1.0: '#c0392b'}).add_to(fg_ramai)
+
+    # 3. Gabungkan Layer Groups ke Peta Utama
+    fg_sepi.add_to(m)
+    fg_sedang.add_to(m)
+    fg_ramai.add_to(m)
+
+    # 4. AKTIFKAN FITUR FILTER (LayerControl box)
+    folium.LayerControl(position='topright', collapsed=False).add_to(m)
+
+    legend_text = 'Menampilkan laporan pengguna aktif' if reports is not None and not reports.empty else 'Data keramaian masih berupa simulasi'
     legend = f'''
     <div style="position: fixed; bottom: 60px; right: 12px; z-index:9999; background:white; padding:10px; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,0.3); width:230px;">
       <b>Legend Keramaian</b><br>
@@ -254,7 +274,7 @@ def create_map(reports=None):
     '''
     m.get_root().html.add_child(folium.Element(legend))
 
-    detail_text = 'Heatmap laporan pengguna' if reports is not None and not reports.empty else 'Heatmap simulasi - kirim laporan untuk memperbarui'
+    detail_text = 'Gunakan menu centang di kanan atas untuk filter tempat'
     title = f'''
     <div style="position: fixed; top: 12px; left: 12px; z-index:9999; background: rgba(255,255,255,0.95); padding:10px 14px; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,0.2); max-width:320px;">
       <div style="font-weight:bold; font-size:16px;">WEB GIS ACTIVITY MAPPING UNDIP</div>
@@ -265,14 +285,23 @@ def create_map(reports=None):
 
     return m._repr_html_()
 
+def hitung_jarak(lat1, lon1, lat2, lon2):
+    R = 6371000  # Radius bumi dalam meter
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    
+    a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
 
 @app.route('/')
 def index():
     reports = load_reports()
-    stats = compute_stats(reports)
-    map_html = create_map()
+    active_reports = get_active_reports(reports, hours=2)
+    stats = compute_stats(reports, active_reports)
+    map_html = create_map(active_reports)
     return render_template('index.html', map_html=map_html, stats=stats)
-
 
 @app.route('/laporkan', methods=['GET', 'POST'])
 def laporkan():
@@ -280,48 +309,64 @@ def laporkan():
     success = False
     error = None
     reports = load_reports()
+    MAX_JARAK_METER = 50
 
     if request.method == 'POST':
         nama = request.form.get('nama', '').strip()
         lokasi = request.form.get('lokasi', '').strip()
         tingkat_keramaian = request.form.get('tingkat_keramaian', '').strip()
+        user_lat = request.form.get('user_lat')
+        user_lon = request.form.get('user_lon')
         foto_file = request.files.get('foto')
 
         if not lokasi or not tingkat_keramaian or not foto_file or foto_file.filename == '':
             error = 'Silakan isi semua kolom wajib dan unggah foto area.'
         elif not allowed_file(foto_file.filename):
             error = 'Foto harus berformat JPG, JPEG, atau PNG.'
+        elif not user_lat or not user_lon:
+            error = 'Gagal mendapatkan lokasi Anda. Pastikan izin GPS browser diaktifkan!'
         else:
-            timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
-            ext = foto_file.filename.rsplit('.', 1)[1].lower()
-            filename = f'foto_{timestamp_str}.{ext}'
-            ensure_upload_folder()
-            foto_path = os.path.join(UPLOAD_FOLDER, filename)
-            foto_file.save(foto_path)
-            relative_path = os.path.join('uploads', filename).replace('\\', '/')
+            target = LOCATIONS.get(lokasi)
+            jarak = hitung_jarak(float(user_lat), float(user_lon), target['lat'], target['lon'])
+            
+            if jarak > MAX_JARAK_METER:
+                error = f'Laporan ditolak! Anda berada {int(jarak)} meter dari {lokasi}. Jarak maksimal adalah {MAX_JARAK_METER} meter.'
+            else:
+                timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+                ext = foto_file.filename.rsplit('.', 1)[1].lower()
+                filename = f'foto_{timestamp_str}.{ext}'
+                ensure_upload_folder()
+                foto_path = os.path.join(UPLOAD_FOLDER, filename)
+                foto_file.save(foto_path)
+                relative_path = os.path.join('uploads', filename).replace('\\', '/')
 
-            save_report({
-                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'nama': nama,
-                'lokasi': lokasi,
-                'tingkat_keramaian': tingkat_keramaian,
-                'foto': relative_path,
-            })
-            success = True
-            reports = load_reports()
+                save_report({
+                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'nama': nama,
+                    'lokasi': lokasi,
+                    'tingkat_keramaian': tingkat_keramaian,
+                    'foto': relative_path,
+                })
+                success = True
+                reports = load_reports()
 
     report_records = reports.to_dict(orient='records')
-    return render_template('report.html', locations=locations, success=success, error=error, reports=report_records)
-
+    
+    return render_template(
+        'report.html', 
+        locations=locations, 
+        locations_json=json.dumps(LOCATIONS),
+        success=success, 
+        error=error, 
+        reports=report_records
+    )
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
-
 @app.route('/api/locations')
 def api_locations():
-    """Kembalikan data lokasi + nilai keramaian (simulasi) dalam JSON."""
     locations = []
     for name, c in LOCATIONS.items():
         crowd = get_crowd_level()
@@ -337,6 +382,65 @@ def api_locations():
 
     return jsonify({'timestamp': datetime.now().isoformat(), 'locations': locations})
 
+# ============================================
+# FITUR ADMIN (NON-CLIENT)
+# ============================================
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        password = request.form.get('password')
+        # Ganti 'admin123' dengan password rahasia yang Anda inginkan
+        if password == 'admin123': 
+            session['logged_in'] = True
+            return redirect(url_for('admin'))
+        else:
+            error = 'Password salah! Akses ditolak.'
+    return render_template('login.html', error=error)
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None) # Hapus sesi login
+    return redirect(url_for('index'))
+
+@app.route('/admin')
+def admin():
+    # Cek apakah user sudah login, jika belum lempar ke halaman login
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
+    reports = load_reports()
+    
+    # Menambahkan ID (berdasarkan nomor baris) agar kita tahu data mana yang dihapus
+    reports['id'] = reports.index
+    report_records = reports.to_dict(orient='records')
+    
+    return render_template('admin.html', reports=report_records)
+
+@app.route('/hapus_laporan/<int:report_id>', methods=['POST'])
+def hapus_laporan(report_id):
+    # Proteksi: hanya admin yang login yang bisa menghapus
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
+    df = load_reports()
+    
+    if report_id in df.index:
+        # Opsional: Hapus file fotonya juga dari folder uploads agar memori laptop/server tidak penuh
+        foto_path = df.at[report_id, 'foto']
+        if pd.notna(foto_path) and foto_path != '':
+            full_path = os.path.join(app.root_path, str(foto_path))
+            if os.path.exists(full_path):
+                try:
+                    os.remove(full_path)
+                except Exception as e:
+                    print(f"Gagal menghapus foto: {e}")
+        
+        # Hapus baris data dari tabel, lalu simpan ulang CSV-nya
+        df = df.drop(report_id)
+        df.to_csv(CSV_PATH, index=False)
+        
+    return redirect(url_for('admin'))
 
 if __name__ == '__main__':
     print('Starting WEB GIS Activity Mapping UNDIP on http://localhost:5000')

@@ -193,19 +193,25 @@
 
         <aside class="dashboard-panel">
             <h2>Dashboard Statistik</h2>
-            <div class="stat-card">
-                <span class="stat-label">Jumlah Laporan Masuk</span>
-                <strong>{{ stats.total_reports }}</strong>
+            
+            <div class="stat-card" style="border-left: 4px solid #2ecc71; background: #f0fff4;">
+                <span class="stat-label">🟢 Laporan Aktif (2 Jam Terakhir)</span>
+                <strong>{{ stats.total_aktif }}</strong>
             </div>
+            
             <div class="stat-card">
-                <span class="stat-label">Lokasi Paling Ramai</span>
+                <span class="stat-label">📚 Total Laporan Historis (Semua)</span>
+                <strong>{{ stats.total_historis }}</strong>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">📍 Lokasi Paling Ramai</span>
                 <strong>{{ stats.top_location }}</strong>
             </div>
-            <div class="stat-card">
-                <span class="stat-label">Aktivitas Paling Sering</span>
-                <strong>{{ stats.top_activity }}</strong>
-            </div>
-            <p class="dashboard-note">Laporan disimpan ke <strong>laporan.csv</strong> dan dibaca oleh Pandas untuk analisis.</p>
+            
+            <p class="dashboard-note" style="margin-top: 15px; font-size: 12px; color: #666; line-height: 1.4;">
+                <strong>Info:</strong> Peta <i>Heatmap</i> secara cerdas hanya merender laporan pengguna yang dikirim dalam 2 jam terakhir. Laporan yang sudah kedaluwarsa hanya akan disimpan untuk analisis historis.
+            </p>
         </aside>
     </div>
     

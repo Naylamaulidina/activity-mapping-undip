@@ -5,149 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporkan Kondisi Area - UNDIP</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6fb;
-            color: #2e3a59;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 980px;
-            margin: 0 auto;
-            padding: 24px;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 18px 24px;
-            border-radius: 16px;
-            box-shadow: 0 16px 45px rgba(102,126,234,0.18);
-        }
-        .header h1 {
-            font-size: 22px;
-        }
-        .header a {
-            text-decoration: none;
-            color: white;
-            background: rgba(255,255,255,0.18);
-            padding: 10px 16px;
-            border-radius: 999px;
-            transition: background 0.2s ease;
-        }
-        .header a:hover {
-            background: rgba(255,255,255,0.3);
-        }
-        .card {
-            background-color: white;
-            padding: 24px;
-            margin-top: 20px;
-            border-radius: 18px;
-            box-shadow: 0 8px 30px rgba(46,58,89,0.08);
-        }
-        .card h2 {
-            margin-bottom: 14px;
-            font-size: 20px;
-        }
-        .field {
-            margin-bottom: 18px;
-        }
-        .field label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #42526e;
-        }
-        .field select,
-        .field input[type="text"],
-        .field input[type="file"] {
-            width: 100%;
-            border: 1px solid #d8e2f0;
-            border-radius: 12px;
-            padding: 14px 16px;
-            font-size: 15px;
-            color: #1f2a44;
-            background: #f9fbff;
-        }
-        .field textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-        .button-submit {
-            background-color: #5b7fff;
-            color: white;
-            border: none;
-            padding: 14px 22px;
-            border-radius: 12px;
-            font-size: 15px;
-            cursor: pointer;
-            transition: transform 0.2s ease, background-color 0.2s ease;
-        }
-        .button-submit:hover {
-            transform: translateY(-1px);
-            background-color: #405ed7;
-        }
-        .table-container {
-            overflow-x: auto;
-            margin-top: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
-        }
-        th, td {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 1px solid #e8ecf5;
-            font-size: 14px;
-            color: #3a4660;
-        }
-        th {
-            background: #f7f9ff;
-            color: #1f2a44;
-            font-weight: 700;
-        }
-        .thumbnail {
-            width: 100px;
-            height: auto;
-            border-radius: 12px;
-            object-fit: cover;
-            box-shadow: 0 8px 24px rgba(46,58,89,0.08);
-        }
-        .button-submit:hover {
-            transform: translateY(-1px);
-            background-color: #405ed7;
-        }
-        .message {
-            margin-bottom: 18px;
-            padding: 14px 18px;
-            border-radius: 12px;
-            font-size: 14px;
-        }
-        .message.success {
-            background: #e6f8ed;
-            color: #1b6d3f;
-            border: 1px solid #a5d6a7;
-        }
-        .message.error {
-            background: #fff1f0;
-            color: #b42318;
-            border: 1px solid #f4b3b0;
-        }
-        .footer {
-            text-align: center;
-            color: #6b7c99;
-            font-size: 13px;
-            margin-top: 24px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6fb; color: #2e3a59; min-height: 100vh; }
+        .container { max-width: 980px; margin: 0 auto; padding: 24px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 18px 24px; border-radius: 16px; box-shadow: 0 16px 45px rgba(102,126,234,0.18); }
+        .header h1 { font-size: 22px; }
+        .header a { text-decoration: none; color: white; background: rgba(255,255,255,0.18); padding: 10px 16px; border-radius: 999px; transition: background 0.2s ease; }
+        .header a:hover { background: rgba(255,255,255,0.3); }
+        .card { background-color: white; padding: 24px; margin-top: 20px; border-radius: 18px; box-shadow: 0 8px 30px rgba(46,58,89,0.08); }
+        .card h2 { margin-bottom: 14px; font-size: 20px; }
+        .field { margin-bottom: 18px; }
+        .field label { display: block; margin-bottom: 8px; font-weight: 600; color: #42526e; }
+        .field select, .field input[type="text"], .field input[type="file"] { width: 100%; border: 1px solid #d8e2f0; border-radius: 12px; padding: 14px 16px; font-size: 15px; color: #1f2a44; background: #f9fbff; }
+        .field textarea { min-height: 120px; resize: vertical; }
+        .button-submit { background-color: #5b7fff; color: white; border: none; padding: 14px 22px; border-radius: 12px; font-size: 15px; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease; }
+        .button-submit:hover { transform: translateY(-1px); background-color: #405ed7; }
+        .table-container { overflow-x: auto; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #e8ecf5; font-size: 14px; color: #3a4660; }
+        th { background: #f7f9ff; color: #1f2a44; font-weight: 700; }
+        .thumbnail { width: 100px; height: auto; border-radius: 12px; object-fit: cover; box-shadow: 0 8px 24px rgba(46,58,89,0.08); }
+        .message { margin-bottom: 18px; padding: 14px 18px; border-radius: 12px; font-size: 14px; }
+        .message.success { background: #e6f8ed; color: #1b6d3f; border: 1px solid #a5d6a7; }
+        .message.error { background: #fff1f0; color: #b42318; border: 1px solid #f4b3b0; }
+        .footer { text-align: center; color: #6b7c99; font-size: 13px; margin-top: 24px; }
     </style>
 </head>
 <body>
@@ -166,6 +47,19 @@
             {% endif %}
 
             <form method="post" enctype="multipart/form-data">
+                <input type="hidden" id="user_lat" name="user_lat">
+                <input type="hidden" id="user_lon" name="user_lon">
+                
+                <div class="field" style="background: #eef2fa; padding: 12px; border-radius: 8px;">
+                    <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">📍 Status GPS</p>
+                    <p id="gps-status" style="font-size: 13px; color: #b42318;">Mencari koordinat GPS...</p>
+                </div>
+
+                <div id="distance-info" class="field" style="background: #e8f4f8; padding: 12px; border-radius: 8px; display: none;">
+                    <p style="font-size: 13px; font-weight: bold; color: #1f2a44;">📏 Estimasi Jarak ke Lokasi Terpilih:</p>
+                    <p id="distance-text" style="font-size: 14px; font-weight: bold; margin-top: 4px;">0 meter</p>
+                </div>
+
                 <div class="field">
                     <label for="nama">Nama (opsional)</label>
                     <input type="text" id="nama" name="nama" placeholder="Masukkan nama Anda">
@@ -242,5 +136,97 @@
             © 2026 Activity Mapping UNDIP | Laporan akan tersimpan ke laporan.csv
         </div>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const gpsStatus = document.getElementById("gps-status");
+            const btnSubmit = document.querySelector(".button-submit");
+            const lokasiSelect = document.getElementById("lokasi");
+            const distanceInfo = document.getElementById("distance-info");
+            const distanceText = document.getElementById("distance-text");
+            
+            // Mengambil data koordinat JSON. Ada 'default' untuk mencegah error jika app.py belum diupdate.
+            const locationsData = {{ locations_json | default('{}') | safe }};
+            
+            let userLat = null;
+            let userLon = null;
+
+            // Kunci tombol submit sebelum GPS aktif
+            btnSubmit.disabled = true;
+            btnSubmit.style.opacity = "0.5";
+
+            // Fungsi Formula Haversine di sisi Client/Browser
+            function hitungJarakJS(lat1, lon1, lat2, lon2) {
+                const R = 6371000; // Radius bumi dalam satuan meter
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return R * c;
+            }
+
+            // Fungsi untuk memperbarui tampilan jarak secara real-time
+            function updateLiveDistance() {
+                const lokasiTerpilih = lokasiSelect.value;
+                
+                // Mencegah error jika data dari app.py belum tersambung
+                if (Object.keys(locationsData).length === 0) return;
+                
+                if (!lokasiTerpilih || userLat === null || userLon === null) {
+                    distanceInfo.style.display = "none";
+                    return;
+                }
+
+                const targetCoords = locationsData[lokasiTerpilih];
+                if (!targetCoords) return;
+
+                // Hitung jarak instan
+                const jarak = hitungJarakJS(userLat, userLon, targetCoords.lat, targetCoords.lon);
+                distanceInfo.style.display = "block";
+                
+                // Berikan feedback berdasarkan batas aman (150 meter)
+                if (jarak > 150) {
+                    distanceText.innerHTML = `<span style="color: #b42318;">⚠️ ${Math.round(jarak)} meter (Terlalu Jauh! Batas maks 150m)</span>`;
+                } else {
+                    distanceText.innerHTML = `<span style="color: #1b6d3f;">✅ ${Math.round(jarak)} meter (Anda berada di dalam jangkauan area)</span>`;
+                    btnSubmit.disabled = false;
+                    btnSubmit.style.opacity = "1";
+                }
+            }
+
+            // Meminta akses Geolocation API milik Browser
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        userLat = position.coords.latitude;
+                        userLon = position.coords.longitude;
+                        
+                        document.getElementById("user_lat").value = userLat;
+                        document.getElementById("user_lon").value = userLon;
+                        
+                        gpsStatus.textContent = "✅ Lokasi akurat ditemukan!";
+                        gpsStatus.style.color = "#1b6d3f";
+                        
+                        btnSubmit.disabled = false;
+                        btnSubmit.style.opacity = "1";
+                        
+                        updateLiveDistance();
+                    },
+                    function(error) {
+                        gpsStatus.textContent = "❌ Izin lokasi ditolak atau gagal didapatkan.";
+                        alert("Aplikasi memerlukan izin GPS browser Anda untuk memverifikasi posisi pelaporan.");
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                gpsStatus.textContent = "❌ Browser tidak mendukung fitur Geolocation.";
+            }
+
+            // Memicu kalkulasi jarak saat pengguna memilih lokasi dari dropdown
+            lokasiSelect.addEventListener("change", updateLiveDistance);
+        });
+    </script>
 </body>
 </html>
