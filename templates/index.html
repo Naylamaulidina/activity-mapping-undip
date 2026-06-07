@@ -1,242 +1,391 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <!-- Meta tags untuk responsivitas dan charset -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activity Mapping UNDIP - Peta Keramaian</title>
-    
-    <!-- Link ke Folium CSS (inline styles) -->
+    <title>🗺️ Activity Mapping UNDIP - Peta Keramaian Kampus</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-            height: 100vh;
-            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
-        
-        .container {
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
+
+        /* Header */
         .header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+
+        /* Container utama: filter panel di kiri + peta di kanan */
+        .main-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* PANEL FILTER - FITUR BARU! */
+        .filter-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            width: 280px;
+            height: fit-content;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 90px;
+        }
+
+        .filter-panel h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-group label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f7fafc;
+        }
+
+        .filter-group label:hover {
+            background: #edf2f7;
+            transform: translateX(5px);
+        }
+
+        .filter-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .status-badge {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-sepi { background-color: #48bb78; box-shadow: 0 0 5px #48bb78; }
+        .status-sedang { background-color: #ed8936; box-shadow: 0 0 5px #ed8936; }
+        .status-ramai { background-color: #f56565; box-shadow: 0 0 5px #f56565; }
+
+        .btn-reset {
+            width: 100%;
+            padding: 10px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 100;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-        
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: transform 0.2s;
         }
 
-        .button-report {
-            display: inline-block;
-            font-size: 14px;
-            color: white;
-            background-color: rgba(255,255,255,0.16);
-            border: 1px solid rgba(255,255,255,0.24);
-            padding: 10px 16px;
-            border-radius: 999px;
-            text-decoration: none;
-            transition: background-color 0.2s ease, transform 0.2s ease;
+        .btn-reset:hover {
+            transform: translateY(-2px);
         }
 
-        .button-report:hover {
-            background-color: rgba(255,255,255,0.28);
-            transform: translateY(-1px);
-        }
-        
-        .info-banner {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 12px 15px;
-            margin: 0;
-            font-size: 13px;
-            color: #856404;
-        }
-        
+        /* Container peta */
         .map-container {
             flex: 1;
-            width: 100%;
-            position: relative;
-            background-color: white;
-            min-height: 620px;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 12px 35px rgba(46,58,89,0.08);
-        }
-        
-        #map {
-            width: 100%;
-            height: 100%;
-            min-height: 620px;
-        }
-
-        .dashboard-panel {
-            width: 320px;
-            padding: 24px;
             background: white;
-            border-radius: 18px;
-            box-shadow: 0 12px 35px rgba(46,58,89,0.08);
-            margin-left: 20px;
-            min-width: 280px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
-        .stat-card {
-            background: #f8fbff;
-            border: 1px solid #d9e6ff;
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 16px;
+        #map {
+            height: 70vh;
+            width: 100%;
         }
 
-        .stat-label {
-            display: block;
-            font-size: 13px;
-            color: #6b7c99;
-            margin-bottom: 6px;
-        }
-
+        /* Footer */
         .footer {
-            background-color: #333;
-            color: white;
-            padding: 12px 15px;
+            background: rgba(255,255,255,0.95);
+            padding: 1rem 2rem;
             text-align: center;
-            font-size: 12px;
-        }
-        
-        .refresh-info {
-            text-align: center;
-            padding: 5px;
-            font-size: 11px;
-            background-color: #e8f4f8;
-            color: #555;
-        }
-        
-        /* Responsive design */
-        @media (max-width: 992px) {
-            .content-wrapper {
-                display: block;
-                padding: 16px;
-            }
-
-            .map-container {
-                min-height: 520px;
-            }
-
-            #map {
-                min-height: 520px;
-            }
+            color: #718096;
+            font-size: 0.8rem;
+            margin-top: 20px;
         }
 
+        /* Responsif untuk HP */
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 20px;
+            .main-container {
+                flex-direction: column;
             }
-            
-            .header p {
-                font-size: 12px;
+            .filter-panel {
+                width: 100%;
+                position: static;
             }
+            .map-container {
+                width: 100%;
+            }
+            #map {
+                height: 50vh;
+            }
+        }
 
-            .dashboard-panel {
-                padding: 18px;
-            }
-
-            .content-wrapper {
-                padding: 14px;
-            }
+        .info-banner {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 10px 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #2c5282;
         }
     </style>
+    <!-- Leaflet CSS + JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet Heatmap plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 </head>
 <body>
-    <!-- Header aplikasi -->
     <div class="header">
-        <div>
-            <h1>WEB GIS ACTIVITY MAPPING UNDIP</h1>
-            <p>Peta Keramaian Universitas Diponegoro Tembalang</p>
-        </div>
-        <div>
-            <a class="button-report" href="/laporkan">Laporkan Kondisi Area</a>
-        </div>
+        <h1>
+            🗺️ Activity Mapping UNDIP
+            <span style="font-size: 0.8rem; background: #e2e8f0; padding: 2px 8px; border-radius: 20px;">Dengan Filter</span>
+        </h1>
+        <p>Visualisasi keramaian di 14 lokasi utama Universitas Diponegoro Tembalang</p>
     </div>
-    
-    <!-- Info banner -->
-    <div class="info-banner">
-        ℹ️ Data keramaian masih berupa simulasi. Nilai berubah saat halaman di-refresh.
-    </div>
-    
-    <!-- Container untuk peta dan statistik -->
-    <div class="content-wrapper">
+
+    <div class="main-container">
+        <!-- PANEL FILTER - FITUR BARU! -->
+        <div class="filter-panel">
+            <h3>🔍 Filter Berdasarkan Keramaian</h3>
+            <div class="filter-group">
+                <label>
+                    <input type="checkbox" id="filter-sepi" checked>
+                    <span class="status-badge status-sepi"></span>
+                    🟢 Sepi (0-5)
+                </label>
+                <label>
+                    <input type="checkbox" id="filter-sedang" checked>
+                    <span class="status-badge status-sedang"></span>
+                    🟠 Sedang (6-15)
+                </label>
+                <label>
+                    <input type="checkbox" id="filter-ramai" checked>
+                    <span class="status-badge status-ramai"></span>
+                    🔴 Ramai (16-20)
+                </label>
+            </div>
+            <button class="btn-reset" id="reset-filter">⟳ Reset Semua Filter</button>
+            
+            <div class="info-banner">
+                💡 <strong>Tips:</strong> Centang/hilangkan centang untuk menyaring lokasi yang muncul di peta.<br>
+                📊 Data diperbarui setiap kali halaman di-refresh (F5).
+            </div>
+        </div>
+
+        <!-- Container Peta -->
         <div class="map-container">
-            <div id="map" style="width: 100%; height: 100%;">
-                <!-- Peta Folium akan di-render di sini -->
-                {{ map_html | safe }}
-            </div>
+            <div id="map"></div>
         </div>
-
-        <aside class="dashboard-panel">
-            <h2>Dashboard Statistik</h2>
-            
-            <div class="stat-card" style="border-left: 4px solid #2ecc71; background: #f0fff4;">
-                <span class="stat-label">🟢 Laporan Aktif (2 Jam Terakhir)</span>
-                <strong>{{ stats.total_aktif }}</strong>
-            </div>
-            
-            <div class="stat-card">
-                <span class="stat-label">📚 Total Laporan Historis (Semua)</span>
-                <strong>{{ stats.total_historis }}</strong>
-            </div>
-            
-            <div class="stat-card">
-                <span class="stat-label">📍 Lokasi Paling Ramai</span>
-                <strong>{{ stats.top_location }}</strong>
-            </div>
-            
-            <p class="dashboard-note" style="margin-top: 15px; font-size: 12px; color: #666; line-height: 1.4;">
-                <strong>Info:</strong> Peta <i>Heatmap</i> secara cerdas hanya merender laporan pengguna yang dikirim dalam 2 jam terakhir. Laporan yang sudah kedaluwarsa hanya akan disimpan untuk analisis historis.
-            </p>
-        </aside>
-    </div>
-    
-    <!-- Info refresh -->
-    <div class="refresh-info">
-        💡 Refresh halaman untuk memperbarui data keramaian (F5 atau Ctrl+R)
     </div>
 
-    <!-- Footer -->
     <div class="footer">
-        <p>
-            © 2026 Activity Mapping UNDIP | 
-            <strong>Teknik Geodesi UNDIP</strong> | 
-            <span id="timestamp"></span>
-        </p>
+        <span>📊 Data simulasi semi-realtime | Terakhir diperbarui: <span id="timestamp"></span></span>
     </div>
-    
-    <!-- Script untuk menampilkan timestamp -->
+
     <script>
-        // Menampilkan waktu loading halaman
-        document.getElementById('timestamp').textContent = new Date().toLocaleString('id-ID');
+        // Data lokasi dari Flask (dikirim dari backend)
+        const locationsData = {{ locations_json|safe }};
         
-        // Info browser console untuk development
-        console.log('✅ Activity Mapping UNDIP loaded successfully');
-        console.log('📍 Buka API endpoint di: http://localhost:5000/api/locations');
+        // Inisialisasi peta
+        const map = L.map('map').setView([-7.0507, 110.4399], 15);
+        
+        // Basemap OpenStreetMap
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB',
+            subdomains: 'abcd',
+            maxZoom: 19,
+            minZoom: 12
+        }).addTo(map);
+
+        // Array untuk menyimpan marker dan heatmap points
+        let markers = [];
+        let heatPoints = [];
+
+        // Fungsi untuk menentukan status berdasarkan crowd value
+        function getStatus(crowdValue) {
+            if (crowdValue <= 5) return 'sepi';
+            if (crowdValue <= 15) return 'sedang';
+            return 'ramai';
+        }
+
+        // Fungsi untuk mendapatkan warna marker
+        function getMarkerColor(status) {
+            switch(status) {
+                case 'sepi': return 'green';
+                case 'sedang': return 'orange';
+                case 'ramai': return 'red';
+                default: return 'blue';
+            }
+        }
+
+        // Fungsi untuk mendapatkan emoji status
+        function getStatusEmoji(status) {
+            switch(status) {
+                case 'sepi': return '🟢';
+                case 'sedang': return '🟠';
+                case 'ramai': return '🔴';
+                default: return '⚪';
+            }
+        }
+
+        // Fungsi untuk membuat marker
+        function createMarker(location, status, crowdValue) {
+            const color = getMarkerColor(status);
+            const emoji = getStatusEmoji(status);
+            
+            // Circle marker
+            const marker = L.circleMarker([location.lat, location.lon], {
+                radius: 12,
+                fillColor: color,
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).bindTooltip(location.name, { sticky: true, direction: 'top' });
+            
+            // Popup dengan informasi detail
+            marker.bindPopup(`
+                <div style="min-width: 200px;">
+                    <h4 style="margin: 0 0 8px 0; color: #2d3748;">${emoji} ${location.name}</h4>
+                    <hr style="margin: 5px 0;">
+                    <p><strong>📊 Nilai Keramaian:</strong> ${crowdValue}/20</p>
+                    <p><strong>📍 Status:</strong> <span style="color: ${color}; font-weight: bold;">${status.toUpperCase()}</span></p>
+                    <p><strong>🗺️ Koordinat:</strong><br>${location.lat}, ${location.lon}</p>
+                    <small style="color: #718096;">⏱️ Data dari refresh terakhir</small>
+                </div>
+            `);
+            
+            return marker;
+        }
+
+        // Fungsi untuk update tampilan marker berdasarkan filter
+        function updateMarkersVisibility() {
+            const showSepi = document.getElementById('filter-sepi').checked;
+            const showSedang = document.getElementById('filter-sedang').checked;
+            const showRamai = document.getElementById('filter-ramai').checked;
+            
+            markers.forEach(marker => {
+                const status = marker.options.status;
+                if ((status === 'sepi' && showSepi) ||
+                    (status === 'sedang' && showSedang) ||
+                    (status === 'ramai' && showRamai)) {
+                    map.addLayer(marker);
+                } else {
+                    map.removeLayer(marker);
+                }
+            });
+        }
+
+        // Fungsi utama untuk load semua data ke peta
+        function loadMapData() {
+            // Hapus marker dan heatmap yang lama jika ada
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+            if (window.heatLayer) map.removeLayer(window.heatLayer);
+            
+            heatPoints = [];
+            
+            // Loop untuk setiap lokasi
+            locationsData.forEach(location => {
+                const crowdValue = location.crowd_value;
+                const status = getStatus(crowdValue);
+                const intensity = crowdValue / 20;
+                
+                // Simpan ke heatmap points
+                heatPoints.push([location.lat, location.lon, intensity]);
+                
+                // Buat marker
+                const marker = createMarker(location, status, crowdValue);
+                marker.options.status = status;
+                markers.push(marker);
+            });
+            
+            // Update tampilan marker sesuai filter
+            updateMarkersVisibility();
+            
+            // Tambahkan heatmap layer
+            window.heatLayer = L.heatLayer(heatPoints, {
+                radius: 25,
+                blur: 15,
+                maxZoom: 17,
+                minOpacity: 0.3,
+                gradient: {
+                    0.2: '#48bb78',  // hijau (sepi)
+                    0.5: '#ed8936',  // oranye (sedang)
+                    1.0: '#f56565'   // merah (ramai)
+                }
+            }).addTo(map);
+        }
+
+        // Event listener untuk checkbox filter
+        document.getElementById('filter-sepi').addEventListener('change', updateMarkersVisibility);
+        document.getElementById('filter-sedang').addEventListener('change', updateMarkersVisibility);
+        document.getElementById('filter-ramai').addEventListener('change', updateMarkersVisibility);
+        
+        // Reset filter (centang semua)
+        document.getElementById('reset-filter').addEventListener('click', () => {
+            document.getElementById('filter-sepi').checked = true;
+            document.getElementById('filter-sedang').checked = true;
+            document.getElementById('filter-ramai').checked = true;
+            updateMarkersVisibility();
+        });
+        
+        // Set timestamp
+        document.getElementById('timestamp').innerText = new Date().toLocaleString('id-ID');
+        
+        // Load data saat halaman siap
+        loadMapData();
     </script>
 </body>
 </html>
