@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗺️ Activity Mapping UNDIP - Peta Keramaian Kampus</title>
+    
+    <!-- Leaflet CSS & JS (required by Folium) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Leaflet Heatmap Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        /* Navbar / Header */
+        .navbar {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1000;
+        }
+        
+        .navbar h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .navbar h1 i {
+            font-size: 1.8rem;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        /* Container utama */
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        /* Panel info & kontrol */
+        .info-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            background: #f0f4f8;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .stat-item i {
+            margin-right: 8px;
+            color: #2a5298;
+        }
+        
+        .refresh-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 8px 18px;
+            border-radius: 40px;
+        }
+        
+        .refresh-control label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        #intervalSelect {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            background: white;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .btn-refresh {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, background 0.2s;
+        }
+        
+        .btn-refresh:hover {
+            background: #1e3c72;
+            transform: scale(1.02);
+        }
+        
+        .auto-status {
+            font-size: 0.85rem;
+            color: #28a745;
+            font-weight: 500;
+        }
+        
+        .auto-status i {
+            margin-right: 4px;
+        }
+        
+        .timestamp {
+            font-size: 0.85rem;
+            color: #666;
+            background: #e9ecef;
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+        
+        /* Map wrapper */
+        .map-wrapper {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background: #fff;
+        }
+        
+        #map {
+            height: 550px;
+            width: 100%;
+        }
+        
+        /* Legend overlay kustom */
+        .custom-legend {
+            background: white;
+            padding: 12px 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-size: 0.85rem;
+            min-width: 160px;
+        }
+        
+        .custom-legend h4 {
+            margin-bottom: 8px;
+            font-size: 1rem;
+            color: #1e3c72;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+        
+        .legend-color.heat {
+            width: 30px;
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(to right, #00ff00, #ffa500, #ff0000);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-size: 0.8rem;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar h1 { font-size: 1.2rem; }
+            .info-panel { flex-direction: column; align-items: stretch; }
+            .refresh-control { justify-content: space-between; }
+            #map { height: 400px; }
+        }
+        
+        /* Notifikasi auto-refresh */
+        .toast-msg {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1e3c72;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: opacity 0.3s;
+            pointer-events: none;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h1>
+        <i class="fas fa-map-marked-alt"></i>
+        Activity Mapping UNDIP
+    </h1>
+    <div class="subtitle">Peta Keramaian Real-time · Kampus Tembalang</div>
+</div>
+
+<div class="container">
+    <div class="info-panel">
+        <div class="stats">
+            <div class="stat-item">
+                <i class="fas fa-map-marker-alt"></i> 14 Lokasi Strategis
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-chart-line"></i> Simulasi Keramaian (0-20)
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-sync-alt"></i> <span id="autoStatusText">Auto-refresh: AKTIF</span>
+            </div>
+        </div>
+        
+        <div class="refresh-control">
+            <label><i class="fas fa-clock"></i> Refresh otomatis setiap:</label>
+            <select id="intervalSelect">
+                <option value="5">5 detik</option>
+                <option value="10" selected>10 detik</option>
+                <option value="15">15 detik</option>
+                <option value="30">30 detik</option>
+                <option value="60">60 detik</option>
+                <option value="0">MATI (manual)</option>
+            </select>
+            <button class="btn-refresh" id="manualRefreshBtn">
+                <i class="fas fa-sync-alt"></i> Refresh Sekarang
+            </button>
+        </div>
+        
+        <div class="timestamp">
+            <i class="far fa-calendar-alt"></i> Data terakhir: 
+            <span id="lastUpdateTime">--:--:--</span>
+        </div>
+    </div>
+    
+    <div class="map-wrapper">
+        <div id="map"></div>
+    </div>
+    
+    <!-- Legend custom yang akan diposisikan via JS -->
+    <div id="legendContainer" style="position: relative; margin-top: 10px;"></div>
+    
+    <footer>
+        <i class="fas fa-university"></i> Universitas Diponegoro | Teknik Geodesi | Visualisasi Keramaian Semi-Real Time
+    </footer>
+</div>
+
+<div id="toastMsg" class="toast-msg">
+    <i class="fas fa-sync-alt"></i> Halaman di-refresh otomatis
+</div>
+
+<script>
+    // ======================
+    // DATA LOKASI (sama dengan yang di Python)
+    // Koordinat dan nama sesuai dengan app.py
+    // ======================
+    const LOCATIONS_DATA = {
+        "Universitas Diponegoro": {"lat": -7.0507, "lon": 110.4399},
+        "Perpustakaan UNDIP": {"lat": -7.0516, "lon": 110.4381},
+        "Muladi Dome": {"lat": -7.0510, "lon": 110.4406},
+        "Rektorat UNDIP": {"lat": -7.0516, "lon": 110.4395},
+        "Fakultas Teknik": {"lat": -7.0507, "lon": 110.4409},
+        "Fakultas Hukum": {"lat": -7.0535, "lon": 110.4387},
+        "Fakultas Ekonomika & Bisnis": {"lat": -7.0547, "lon": 110.4377},
+        "FISIP": {"lat": -7.0530, "lon": 110.4369},
+        "Fakultas Psikologi": {"lat": -7.0540, "lon": 110.4401},
+        "Fakultas Kedokteran": {"lat": -7.0488, "lon": 110.4426},
+        "FSM": {"lat": -7.0498, "lon": 110.4384},
+        "FKM": {"lat": -7.0519, "lon": 110.4360},
+        "FPP": {"lat": -7.0475, "lon": 110.4392},
+        "FPIK": {"lat": -7.0482, "lon": 110.4413}
+    };
+    
+    // Inisialisasi peta
+    let map;
+    let currentHeatLayer = null;
+    let currentMarkers = [];
+    let refreshIntervalId = null;
+    let currentInterval = 10; // default 10 detik
+    
+    // Fungsi untuk mendapatkan data keramaian dari API backend
+    async function fetchCrowdData() {
+        try {
+            const response = await fetch('/api/locations');
+            if (!response.ok) throw new Error('Gagal mengambil data');
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetch data:', error);
+            // Fallback: generate random data sendiri jika API gagal
+            return generateFallbackData();
+        }
+    }
+    
+    // Fallback jika API bermasalah (tetap bisa jalan)
+    function generateFallbackData() {
+        const result = {};
+        for (let name in LOCATIONS_DATA) {
+            const crowd = Math.floor(Math.random() * 21); // 0-20
+            result[name] = crowd;
+        }
+        return result;
+    }
+    
+    // Tentukan warna berdasarkan nilai crowd (0-20)
+    function getColorByCrowd(value) {
+        if (value <= 5) return '#2ecc71';  // hijau sepi
+        if (value <= 15) return '#f39c12'; // oranye sedang
+        return '#e74c3c';                  // merah ramai
+    }
+    
+    function getStatusText(value) {
+        if (value <= 5) return '🟢 Sepi';
+        if (value <= 15) return '🟠 Sedang';
+        return '🔴 Ramai';
+    }
+    
+    // Update map dengan data terbaru
+    async function refreshMapData() {
+        // Tampilkan notifikasi kecil jika auto-refresh (bisa dihilangkan jika terlalu mengganggu)
+        const isManual = !refreshIntervalId; // sederhana: kita kasih notifikasi untuk semua refresh
+        if (!isManual) {
+            showToastMessage();
+        }
+        
+        // Update timestamp UI
+        const now = new Date();
+        document.getElementById('lastUpdateTime').innerText = now.toLocaleTimeString('id-ID');
+        
+        // Ambil data keramaian
+        const crowdData = await fetchCrowdData();
+        
+        // Siapkan data untuk heatmap (lat, lon, intensity)
+        const heatData = [];
+        
+        // Hapus marker yang lama
+        if (currentMarkers.length) {
+            currentMarkers.forEach(marker => map.removeLayer(marker));
+            currentMarkers = [];
+        }
+        
+        // Iterasi setiap lokasi
+        for (let [name, coords] of Object.entries(LOCATIONS_DATA)) {
+            let crowdValue = crowdData[name];
+            if (crowdValue === undefined) crowdValue = Math.floor(Math.random() * 21);
+            
+            const intensity = crowdValue / 20.0;
+            heatData.push([coords.lat, coords.lon, intensity]);
+            
+            const color = getColorByCrowd(crowdValue);
+            const statusText = getStatusText(crowdValue);
+            
+            // Buat marker lingkaran (CircleMarker)
+            const circleMarker = L.circleMarker([coords.lat, coords.lon], {
+                radius: 10,
+                fillColor: color,
+                color: '#ffffff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map);
+            
+            // Tooltip
+            circleMarker.bindTooltip(`${name}\nKeramaian: ${crowdValue} - ${statusText}`, {
+                sticky: true,
+                className: 'custom-tooltip'
+            });
+            
+            // Popup dengan informasi detail
+            const popupContent = `
+                <div style="min-width: 180px;">
+                    <h4><i class="fas fa-location-dot"></i> ${name}</h4>
+                    <hr style="margin: 5px 0;">
+                    <p><strong>📊 Nilai Keramaian:</strong> ${crowdValue} / 20</p>
+                    <p><strong>📌 Status:</strong> ${statusText}</p>
+                    <p><strong>📍 Koordinat:</strong><br>${coords.lat}, ${coords.lon}</p>
+                    <small><i class="fas fa-chart-line"></i> Data diperbarui otomatis setiap ${currentInterval} detik</small>
+                </div>
+            `;
+            circleMarker.bindPopup(popupContent);
+            
+            currentMarkers.push(circleMarker);
+        }
+        
+        // Update heatmap
+        if (currentHeatLayer) {
+            map.removeLayer(currentHeatLayer);
+        }
+        
+        currentHeatLayer = L.heatLayer(heatData, {
+            radius: 25,
+            blur: 15,
+            maxZoom: 17,
+            minOpacity: 0.4,
+            gradient: {
+                0.2: '#00ff00',  // hijau untuk intensitas rendah
+                0.5: '#ffa500',  // oranye
+                1.0: '#ff0000'   // merah
+            }
+        }).addTo(map);
+    }
+    
+    // Menampilkan toast notifikasi singkat
+    let toastTimeout;
+    function showToastMessage() {
+        const toast = document.getElementById('toastMsg');
+        toast.style.opacity = '1';
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            toast.style.opacity = '0';
+        }, 1500);
+    }
+    
+    // Mengatur interval refresh berdasarkan pilihan user
+    function setAutoRefresh(seconds) {
+        // Hapus interval lama jika ada
+        if (refreshIntervalId) {
+            clearInterval(refreshIntervalId);
+            refreshIntervalId = null;
+        }
+        
+        if (seconds > 0) {
+            refreshIntervalId = setInterval(() => {
+                refreshMapData();
+            }, seconds * 1000);
+            document.getElementById('autoStatusText').innerHTML = `<i class="fas fa-play-circle"></i> Auto-refresh: AKTIF (${seconds}s)`;
+        } else {
+            document.getElementById('autoStatusText').innerHTML = `<i class="fas fa-stop-circle"></i> Auto-refresh: MATI (manual)`;
+        }
+        currentInterval = seconds;
+    }
+    
+    // Init map dan event listener
+    async function init() {
+        // Buat peta dengan posisi tengah ke UNDIP
+        map = L.map('map').setView([-7.051, 110.439], 16);
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; CartoDB',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+        
+        // Tambahkan legend secara manual
+        const legendHtml = `
+            <div class="custom-legend">
+                <h4><i class="fas fa-chart-simple"></i> Indikator Keramaian</h4>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #2ecc71;"></div>
+                    <span>Sepi (0-5)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f39c12;"></div>
+                    <span>Sedang (6-15)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e74c3c;"></div>
+                    <span>Ramai (16-20)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color heat"></div>
+                    <span>Heatmap intensitas</span>
+                </div>
+                <hr>
+                <small><i class="fas fa-sync-alt"></i> Data berubah otomatis</small>
+            </div>
+        `;
+        const legendContainer = document.getElementById('legendContainer');
+        legendContainer.innerHTML = legendHtml;
+        // Posisikan legend di pojok kanan bawah map menggunakan Leaflet Control
+        const LegendControl = L.Control.extend({
+            options: { position: 'bottomright' },
+            onAdd: function() {
+                const div = L.DomUtil.create('div', 'info legend');
+                div.innerHTML = legendHtml;
+                return div;
+            }
+        });
+        map.addControl(new LegendControl());
+        
+        // Event listener untuk select interval
+        const intervalSelect = document.getElementById('intervalSelect');
+        const manualBtn = document.getElementById('manualRefreshBtn');
+        
+        intervalSelect.addEventListener('change', (e) => {
+            const val = parseInt(e.target.value, 10);
+            setAutoRefresh(val);
+            // Optional: langsung refresh sekali biar sinkron
+            refreshMapData();
+        });
+        
+        manualBtn.addEventListener('click', () => {
+            refreshMapData();
+            showToastMessage();
+        });
+        
+        // Load data pertama kali
+        await refreshMapData();
+        
+        // Set auto refresh default: 10 detik (sesuai selected)
+        setAutoRefresh(10);
+        
+        // Simpan currentInterval untuk info popup
+        window.currentIntervalGetter = () => currentInterval;
+    }
+    
+    // Jalankan init setelah halaman siap
+    window.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
