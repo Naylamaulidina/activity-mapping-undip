@@ -1,3 +1,7 @@
+## Demo Website
+Website dapat diakses di:
+https://naylamaulidina.pythonanywhere.com/
+
 # 🗺️ Activity Mapping UNDIP - Aplikasi Web GIS
 
 Aplikasi web untuk visualisasi peta keramaian di berbagai lokasi Universitas Diponegoro Tembalang secara semi-realtime.
