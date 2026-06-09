@@ -1,10 +1,12 @@
-## Demo Website
-Website dapat diakses di:
-https://naylamaulidina.pythonanywhere.com/
+# Activity Mapping Universitas Diponegoro
 
-# 🗺️ Activity Mapping UNDIP - Aplikasi Web GIS
+🌐 **Demo Website**  
+https://naylamaulidina.pythonanywhere.com
 
-Aplikasi web untuk visualisasi peta keramaian di berbagai lokasi Universitas Diponegoro Tembalang secara semi-realtime.
+📂 **Repository GitHub**  
+https://github.com/Naylamaulidina/activity-mapping-undip
+
+---
 
 ## 📋 Daftar Isi
 1. [Deskripsi Singkat](#deskripsi-singkat)
@@ -33,38 +35,54 @@ Memberikan visualisasi keramaian di berbagai lokasi UNDIP secara semi-realtime u
 
 ---
 
-## ✨ Fitur Utama
+## Fitur Utama
 
-✅ **Peta Interaktif**
-- Zoom dan pan untuk eksplorasi area
-- Basemap OpenStreetMap yang akurat
-- Center otomatis ke area UNDIP Tembalang
+### 🗺️ Peta Interaktif Kampus
+- Menampilkan peta kampus berbasis OpenStreetMap.
+- Menampilkan titik-titik lokasi penting di Universitas Diponegoro.
+- Informasi lokasi dapat diakses langsung melalui marker pada peta.
 
-✅ **Heatmap Keramaian**
-- Gradient warna: Hijau (Sepi) → Oranye (Sedang) → Merah (Ramai)
-- Heat layer yang smooth dan mudah dibaca
-- Update saat halaman di-refresh
+### 🔥 Heatmap Keramaian
+- Visualisasi persebaran tingkat keramaian kampus.
+- Warna heatmap menunjukkan intensitas aktivitas pada suatu lokasi.
 
-✅ **14 Lokasi Penting UNDIP**
-- Marker dengan circle yang berwarna sesuai keramaian
-- Popup berisi: nama lokasi, koordinat GPS, nilai keramaian, status
-- Tooltip untuk preview nama lokasi saat hover
+### 📢 Crowdsourcing Laporan
+- Pengguna dapat mengirim laporan kondisi area secara langsung.
+- Data laporan digunakan untuk memperbarui kondisi keramaian pada peta.
 
-✅ **Data Simulasi Stabil**
-- Random integer (0-20) per lokasi per refresh
-- Transisi realistis tanpa perubahan ekstrem
-- Tidak ada update otomatis per detik (sesuai spesifikasi)
+### 📸 Upload Foto
+- Pengguna dapat menyertakan foto kondisi area saat melakukan pelaporan.
+- Membantu meningkatkan validitas laporan yang diberikan.
 
-✅ **UI Modern & Bersih**
-- Header gradient dengan informasi aplikasi
-- Legend yang jelas dan mudah dipahami
-- Info banner untuk penjelasan data simulasi
-- Footer dengan timestamp update terakhir
+### ⏳ Time Decay
+- Laporan lama secara otomatis memiliki pengaruh yang semakin kecil.
+- Sistem lebih memprioritaskan laporan terbaru.
 
-✅ **API Endpoint**
-- `/api/locations` untuk mendapatkan data dalam format JSON
+### 📍 Haversine Distance
+- Digunakan untuk menghitung jarak pengguna terhadap lokasi yang dilaporkan.
+- Membantu validasi lokasi pelaporan.
+
+### 📊 Statistik Aktivitas
+- Menampilkan informasi jumlah laporan.
+- Menampilkan kondisi aktivitas kampus secara ringkas.
+
+### 👨‍💼 Halaman Admin
+- Digunakan untuk memantau laporan yang masuk.
+- Memudahkan proses pengelolaan data laporan.
 
 ---
+## Teknologi yang Digunakan
+
+| Komponen | Teknologi |
+|-----------|-----------|
+| Backend | Python |
+| Framework | Flask |
+| Frontend | HTML, CSS, JavaScript |
+| Pemetaan | Folium |
+| Basemap | OpenStreetMap |
+| Pengolahan Data | Pandas |
+| Penyimpanan Data | CSV |
+| Deployment | PythonAnywhere |
 
 ## 🛠️ Persyaratan Sistem
 
@@ -98,70 +116,79 @@ activity-mapping-undip/
 ```
 
 ---
+## Instalasi dan Setup
 
-## 🚀 Instalasi & Setup
+### 1. Clone Repository
 
-### Step 1: Buka Folder Project di VS Code
-
-1. Buka **VS Code**
-2. Klik **File → Open Folder** (atau `Ctrl+K Ctrl+O`)
-3. Pilih folder: `activity-mapping-undip`
-4. Klik **Select Folder**
-
-### Step 2: Buka Terminal di VS Code
-
-Klik **Terminal → New Terminal** (atau `Ctrl+` pada keyboard)
-
-Terminal akan terbuka di bagian bawah VS Code.
-
-### Step 3: Buat Virtual Environment (Opsional tapi Recommended)
-
-Virtual environment memisahkan dependencies project ini dari system Python.
-
-**Windows (PowerShell):**
-```powershell
-# Buat virtual environment
-python -m venv venv
-
-# Aktivasi virtual environment
-.\venv\Scripts\Activate.ps1
+```bash
+git clone https://github.com/Naylamaulidina/activity-mapping-undip.git
+cd activity-mapping-undip
 ```
 
-**Windows (Command Prompt):**
-```cmd
+### 2. Buat Virtual Environment (Opsional)
+
+Windows:
+
+```bash
 python -m venv venv
-venv\Scripts\activate.bat
+venv\Scripts\activate
 ```
 
-**Mac/Linux:**
+Linux / macOS:
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-Setelah aktivasi, prompt terminal akan berubah menjadi `(venv)`.
-
-### Step 4: Install Library Dependencies
+### 3. Install Dependency
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Library yang akan di-install:
-- **Flask** 2.3.3 - Web framework
-- **Folium** 0.14.0 - Library untuk membuat peta interaktif
-- **Jinja2** 3.1.2 - Template engine
-- **Werkzeug** 2.3.7 - WSGI utility library
-
-### Step 5: Verifikasi Instalasi (Opsional)
-
-Untuk memastikan library sudah terinstall dengan benar:
+### 4. Jalankan Aplikasi
 
 ```bash
-pip list
+python app.py
 ```
 
-Anda akan melihat list semua library yang terinstall termasuk Flask dan Folium.
+### 5. Akses Melalui Browser
+
+```text
+http://localhost:5000
+```
+
+---
+
+## Deployment
+
+Aplikasi telah berhasil dideploy menggunakan PythonAnywhere dan dapat diakses melalui:
+
+https://naylamaulidina.pythonanywhere.com
+
+Deployment dilakukan dengan langkah berikut:
+
+1. Clone repository GitHub ke PythonAnywhere.
+2. Install seluruh dependency dari `requirements.txt`.
+3. Konfigurasi WSGI agar mengarah ke file `app.py`.
+4. Reload web application melalui dashboard PythonAnywhere.
+5. Aplikasi dapat diakses secara online melalui domain PythonAnywhere.
+
+---
+
+## Dependencies
+
+Dependency utama yang digunakan pada proyek ini:
+
+| Library | Fungsi |
+|----------|----------|
+| Flask | Framework backend web |
+| Folium | Visualisasi peta interaktif |
+| Pandas | Pengolahan data laporan |
+| Jinja2 | Template engine Flask |
+| Werkzeug | Utilitas web Flask |
+| Gunicorn | Web server deployment |
 
 ---
 
