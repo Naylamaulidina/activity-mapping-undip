@@ -319,24 +319,46 @@ Folium `HeatMap` layer:
 
 ## 📍 Data Lokasi UNDIP
 
-14 lokasi yang di-monitor:
+lokasi yang di-monitor:
 
-| No | Nama Lokasi | Latitude | Longitude |
-|:--:|:-----------|:--------:|:---------:|
-| 1 | Universitas Diponegoro | -7.0507 | 110.4399 |
-| 2 | Perpustakaan UNDIP | -7.0516 | 110.4381 |
-| 3 | Muladi Dome | -7.0510 | 110.4406 |
-| 4 | Rektorat UNDIP | -7.0516 | 110.4395 |
-| 5 | Fakultas Teknik | -7.0507 | 110.4409 |
-| 6 | Fakultas Hukum | -7.0535 | 110.4387 |
-| 7 | Fakultas Ekonomika & Bisnis | -7.0547 | 110.4377 |
-| 8 | FISIP | -7.0530 | 110.4369 |
-| 9 | Fakultas Psikologi | -7.0540 | 110.4401 |
-| 10 | Fakultas Kedokteran | -7.0488 | 110.4426 |
-| 11 | FSM | -7.0498 | 110.4384 |
-| 12 | FKM | -7.0519 | 110.4360 |
-| 13 | FPP | -7.0475 | 110.4392 |
-| 14 | FPIK | -7.0482 | 110.4413 |
+| Nama Lokasi | Latitude | Longitude |
+|:-----------|:--------:|:---------:|
+| Lokasi | Latitude | Longitude |
+|---------|---------|---------|
+| Perpustakaan Widya Puraya | -7.0516 | 110.4381 |
+| Gedung Fakultas Ilmu Budaya | -7.0520 | 110.4375 |
+| Gedung Fakultas Hukum | -7.0535 | 110.4387 |
+| Gedung Sekolah Vokasi | -7.0530 | 110.4355 |
+| Gedung Fakultas Ilmu Sosial dan Ilmu Politik | -7.0528 | 110.4370 |
+| Gedung Teknik Arsitektur | -7.0517 | 110.4400 |
+| Gedung Pertamina Teknik Geologi | -7.0499 | 110.4409 |
+| Gedung Prof Soedarto | -7.0502 | 110.4420 |
+| Gedung Fakultas Peternakan dan Pertanian | -7.0483 | 110.4421 |
+| Gedung Teknik Kimia | -7.0508 | 110.4418 |
+| Gedung Teknik Industri | -7.0504 | 110.4428 |
+| Dekanat Fakultas Teknik | -7.0505 | 110.4412 |
+| Gedung Kuliah Teknik Mesin | -7.0500 | 110.4422 |
+| Gedung Jurusan Biologi | -7.0495 | 110.4430 |
+| Gedung Dekanat FMIPA | -7.0490 | 110.4425 |
+| Gedung Laboratorium Geofisika | -7.0487 | 110.4435 |
+| Gedung Fakultas Kesehatan Masyarakat | -7.0485 | 110.4442 |
+| Gedung E FPIK | -7.0492 | 110.4448 |
+| Gedung F FPIK | -7.0495 | 110.4450 |
+| Gedung C FPIK | -7.0490 | 110.4455 |
+| Gedung D FPIK | -7.0493 | 110.4457 |
+| Gedung Departemen Ilmu Keperawatan | -7.0479 | 110.4440 |
+| Gedung Fakultas Teknologi Pangan | -7.0481 | 110.4432 |
+| Gedung ICT Centre | -7.0510 | 110.4398 |
+| Gedung Fakultas Psikologi | -7.0540 | 110.4401 |
+| Gedung Departemen Ilmu Gizi | -7.0476 | 110.4435 |
+| Gedung A Fakultas Kedokteran | -7.0473 | 110.4445 |
+| Kantin FPIK | -7.0498 | 110.4443 |
+| Gedung Teknik Geodesi | -7.0507 | 110.4400 |
+| Gedung Teknik Sipil | -7.0512 | 110.4415 |
+| Gedung Teknik Mesin | -7.0500 | 110.4420 |
+| Gedung Teknik Lingkungan | -7.0509 | 110.4410 |
+| Laboratorium Terintegrasi Fakultas Teknik | -7.0503 | 110.4407 |
+| Bus Stop Campus | -7.0497 | 110.4449 |
 
 ---
 
