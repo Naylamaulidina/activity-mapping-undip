@@ -8,19 +8,6 @@ https://github.com/Naylamaulidina/activity-mapping-undip
 
 ---
 
-## 📋 Daftar Isi
-1. [Deskripsi Singkat](#deskripsi-singkat)
-2. [Fitur Utama](#fitur-utama)
-3. [Persyaratan Sistem](#persyaratan-sistem)
-4. [Struktur Folder](#struktur-folder)
-5. [Instalasi & Setup](#instalasi--setup)
-6. [Cara Menjalankan](#cara-menjalankan)
-7. [Cara Kerja Sistem](#cara-kerja-sistem)
-8. [Penjelasan Logika](#penjelasan-logika)
-9. [Troubleshooting](#troubleshooting)
-
----
-
 ## 📝 Deskripsi Singkat
 
 **Activity Mapping UNDIP** adalah aplikasi web GIS berbasis Python Flask yang menampilkan:
