@@ -13,7 +13,7 @@ https://github.com/Naylamaulidina/activity-mapping-undip
 **Activity Mapping UNDIP** adalah aplikasi web GIS berbasis Python Flask yang menampilkan:
 - **Peta interaktif** menggunakan Folium dan OpenStreetMap
 - **Heatmap keramaian** dengan 3 tingkat kategori (Hijau/Sepi, Oranye/Sedang, Merah/Ramai)
-- **Marker lokasi** untuk 14 titik penting di UNDIP Tembalang
+- **Marker lokasi** untuk menampilkan lokasi keramaian di UNDIP Tembalang
 - **Data simulasi stabil** yang berubah setiap halaman di-refresh dengan variasi realistis
 - **Popup informasi** pada setiap marker dengan detail keramaian
 
